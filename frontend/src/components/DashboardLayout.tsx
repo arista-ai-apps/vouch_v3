@@ -2,20 +2,31 @@
 
 import Sidebar from "@/components/Sidebar";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [period, setPeriod] = useState("March 2026");
+  const router = useRouter();
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-       const eid = localStorage.getItem('engagementId');
-       if (eid === '12') {
-         setPeriod("April 2026");
-       } else {
-         setPeriod("March 2026");
-       }
+      if (localStorage.getItem("auth") !== "true") {
+        router.replace("/login");
+        return;
+      }
+      const eid = localStorage.getItem('engagementId');
+      if (eid === '12') {
+        setPeriod("April 2026");
+      } else {
+        setPeriod("March 2026");
+      }
     }
-  }, []);
+  }, [router]);
+
+  function handleLogout() {
+    localStorage.removeItem("auth");
+    router.push("/login");
+  }
 
   return (
     <div className="flex h-screen bg-[#f8fafc]">
@@ -33,6 +44,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold text-xs">
               CA
             </div>
+            <button onClick={handleLogout} className="text-xs text-slate-400 hover:text-slate-600 transition-colors">
+              Logout
+            </button>
           </div>
         </header>
         <main className="flex-1 overflow-y-auto p-8">
