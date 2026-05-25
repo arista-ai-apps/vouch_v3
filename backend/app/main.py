@@ -1,15 +1,33 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .core.config import settings
-from .core.database import engine
+from .core.database import engine, SessionLocal
 from .models import models
 from .api import clients, engagements, files, reconciliation, exceptions, registers, bill_of_sale, hsn
 
 from fastapi.staticfiles import StaticFiles
+from datetime import datetime
 import os
 
 # Create database tables
 models.Base.metadata.create_all(bind=engine)
+
+def seed_default_data():
+    db = SessionLocal()
+    try:
+        if db.query(models.Client).count() == 0:
+            client = models.Client(id=1, name="RB Systems", pan="AAACR1234P", gstin="27RBSYS1234P1Z1", address="Mumbai")
+            db.add(client)
+            db.flush()
+            engagement = models.Engagement(id=12, client_id=1, period_start=datetime(2026, 4, 1), period_end=datetime(2026, 4, 30), status="active")
+            db.add(engagement)
+            db.commit()
+    except Exception:
+        db.rollback()
+    finally:
+        db.close()
+
+seed_default_data()
 
 app = FastAPI(title=settings.PROJECT_NAME)
 
